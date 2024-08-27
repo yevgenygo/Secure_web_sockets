@@ -55,8 +55,8 @@ pipeline {
                     sh 'docker-compose down'
                    
                     sh """
-                        export APP1_TAG=${params.APP1_DOCER_TAG}
-                        export APP2_TAG=${params.APP2_DOCER_TAG}
+                        export APP1_TAG=${params.APP1_DOCER_TAG} > .env
+                        export APP2_TAG=${params.APP2_DOCER_TAG} >> .env
                         docker-compose up --pull always -d
                     """
  
