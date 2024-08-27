@@ -3,6 +3,8 @@ pipeline {
 
     parameters {
         string(name: 'Secure_web_sockets_BRANCH', defaultValue: 'dev', description: 'Branch to deploy Secure_web_sockets GIT Project')
+        string(name: 'APP1_DOCER_TAG', defaultValue: 'latest', description: 'App1 Docker TAG')
+        string(name: 'APP2_DOCER_TAG', defaultValue: 'latest', description: 'App2 Docker TAG')
     }
 
     environment {
@@ -28,7 +30,7 @@ pipeline {
                     steps {
                         script {
                            docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
-                               def dockerImageApp1 = docker.build("${env.DOCKER_HUB_REPO}/app1:latest", "./Secure_web_sockets/app1")
+                               def dockerImageApp1 = docker.build("${env.DOCKER_HUB_REPO}/app1:${params.APP1_DOCER_TAG}", "./Secure_web_sockets/app1")
                                dockerImageApp1.push()
                              }
                         }
@@ -39,7 +41,7 @@ pipeline {
                         script {
 
                            docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
-                               def dockerImageApp2 = docker.build("${env.DOCKER_HUB_REPO}/app2:latest", "./Secure_web_sockets/app2")
+                               def dockerImageApp2 = docker.build("${env.DOCKER_HUB_REPO}/app2:${params.APP2_DOCER_TAG}", "./Secure_web_sockets/app2")
                                dockerImageApp2.push()
                              }
                        }
@@ -51,9 +53,13 @@ pipeline {
             steps {
                 script {
                     sh 'docker-compose down'
- 
-                    sh "docker-compose up --pull always -d"
                    
+                    sh """
+                        export APP1_TAG=${params.APP1_DOCER_TAG}
+                        export APP2_TAG=${params.APP2_DOCER_TAG}
+                        docker-compose up --pull always -d
+                    """
+ 
 
                 }
             }
