@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'Secure_web_sockets_BRANCH', defaultValue: 'dev', description: 'Branch to deploy Secure_web_sockets GIT Project')
+    }
+
+    environment {
+        DOCKER_HUB_REPO = 'jeniago'
+    }
+    stages {
+	
+        stage('Checkout Code') {
+            parallel {
+                stage('Checkout Secure_web_sockets GIT Project') {
+                    steps {
+                        dir('Secure_web_sockets') {
+                            git branch: "${params.Secure_web_sockets_BRANCH}", url: "https://github.com/yevgenygo/Secure_web_sockets.git"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Build Docker Images') {
+            parallel {
+                stage('Build App1 Docker Image') {
+                    steps {
+                        script {
+                           docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
+                               def dockerImageApp1 = docker.build("${env.DOCKER_HUB_REPO}/app1:latest", "./Secure_web_sockets/app1")
+                               dockerImageApp1.push()
+                             }
+                        }
+                    }
+                }
+                stage('Build App2 Docker Image') {
+                    steps {
+                        script {
+
+                           docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
+                               def dockerImageApp2 = docker.build("${env.DOCKER_HUB_REPO}/app2:latest", "./Secure_web_sockets/app2")
+                               dockerImageApp2.push()
+                             }
+                       }
+                   }
+                }
+            }
+        }
+        stage('Deploy with Docker Compose') {
+            steps {
+                script {
+                    sh 'docker-compose down'
+ 
+                    sh "docker-compose up --pull always -d"
+                   
+
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}

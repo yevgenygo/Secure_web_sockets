@@ -1,0 +1,22 @@
+version: '3'
+services:
+  app1:
+    image: jeniago/app1:${APP1_TAG} #pull the image from dockerhub
+    container_name: app1
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+
+  app2:
+    image: jeniago/app2:${APP2_TAG} #pull the image from dockerhub
+    container_name: app2
+    ports:
+      - "3001:3001"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge  # Using the 'bridge' driver for app1 and app2 can communicate
+
